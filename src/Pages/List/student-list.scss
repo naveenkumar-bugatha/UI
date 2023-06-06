@@ -1,0 +1,97 @@
+.student-record{
+    width: 80%;
+    height: 50px;
+    background-color: #b8b7ba;
+    margin-left: 10%;
+    margin-bottom: 10px;
+    display: table; 
+    overflow: hidden;
+}
+
+.header-record{
+    display: table; 
+    overflow: hidden;
+    display:inline-block;
+    width:100%;
+}
+
+.student-header {
+    font-size: 35px;
+    margin-left: 10%;
+    margin-top: 50px;
+    padding-bottom: 20px;
+}
+
+.student-coulmn{
+    font-size: 20px;
+    display: inline-block;
+    width:15%;
+    display: table-cell; 
+    vertical-align: middle;
+    text-align: center;
+}
+
+.student-coulmn-actions{
+    font-size: 20px;
+    display: inline-block;
+    width:28%;
+    display: table-cell; 
+    vertical-align: middle;
+    text-align: center;
+}
+
+.student-coulmn-header{
+    font-size: 20px;
+    display: inline-block;
+    font-weight: 600;
+    width:15%;
+    display: table-cell; 
+    vertical-align: middle;
+    text-align: center;
+}
+
+.student-actions{
+    font-size: 20px;
+    display: inline-block;
+    font-weight: 600;
+    width:28%;
+    display: table-cell; 
+    vertical-align: middle;
+    text-align: center;
+}
+
+.student-button{
+    height: 30px;
+    width: 70px;
+    margin-right: 10px;
+    border-radius: 6px;
+    border-width: 1px;
+    cursor: pointer;
+}
+
+.student-edit{
+    padding-left: 50px;
+    font-size: 20px;
+    display: inline-block;
+}
+
+.student-delete{
+    padding-left: 10px;
+    font-size: 20px;
+    display: inline-block;
+}
+
+.add-button{
+    height: 30px;
+    width: 140px;
+    padding-top: 5px;
+    border-radius: 6px;
+    border-width: 1px;
+    cursor: pointer;
+}
+
+.add-button-div{
+    float:right;
+    margin-top: 50px;
+    margin-right:10%
+}
