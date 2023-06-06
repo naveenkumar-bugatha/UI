@@ -1,34 +1,28 @@
 import * as React from "react";
 import "./student-list.scss";
+import Popup from '../../Common/Components/pop-up/pop-up';
+import { Record  } from "../Record/record";
 
 export interface IListProps {
     navigate: any
 }
 export interface IListState {
-  
 }
 export class StudentList extends React.Component<IListProps, IListState> {
   constructor(props: IListProps) {
     super(props);
     this.state = {
-
     };
     this.AddStudent = this.AddStudent.bind(this);
-    this.EditStudent = this.EditStudent.bind(this);
   }
 
   /** when component will un mount, reset all state */
   public componentWillUnmount() {
     
   }
-
       
   private AddStudent(){
     this.props.navigate('/add');
-  }
-
-  private EditStudent(){
-    this.props.navigate('/edit/1');
   }
 
   // render
@@ -49,16 +43,7 @@ export class StudentList extends React.Component<IListProps, IListState> {
             <div className="student-coulmn-header">City</div>
             <div className="student-actions">Actions</div>
         </div>
-        <div className="student-record">
-            <div className="student-coulmn">1000</div>
-            <div className="student-coulmn">Naveen Kumar</div>
-            <div className="student-coulmn">Grade-9</div>
-            <div className="student-coulmn">Hyderabad</div>
-            <div className="student-coulmn-actions">
-                <button className="student-button" onClick={()=>this.EditStudent()}>Edit</button>
-                <button className="student-button">Delete</button>
-            </div>
-        </div>
+        <Record navigate={this.props.navigate}/>
       </>
     );
   }
