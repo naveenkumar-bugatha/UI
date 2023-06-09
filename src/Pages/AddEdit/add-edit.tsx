@@ -34,7 +34,10 @@ export class AddEdit extends React.Component<IAddEditProps, IAddEditState> {
   }
 
   private handleSubmit(){
-    alert(this.state.name);
+    if(this.state.isAdd)
+        alert(this.state.name + "Added");
+    else
+        alert(this.state.name + "Updated");
   }
 
   private handleName(e: any){
