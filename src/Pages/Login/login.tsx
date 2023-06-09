@@ -1,8 +1,10 @@
 import * as React from "react";
 import "./login.scss";
 import { LoginPagePrompt } from "./login-page-prompt";
+import ApiService from "../../ApiService/ApiService";
+import { ApiRouteConstants } from "../../ApiService/ApiRouteConstants";
 export interface ILoginProps {
-  navigate: any
+  navigate: any;
 }
 export interface ILoginState {
   /** confirm password */
@@ -35,8 +37,16 @@ export interface ILoginState {
   displayPasswordTips: boolean;
   /** if enter username is empty, this value equal true */
   displayUsernameTips: boolean;
+  /** if enter firstname is empty, this value equal true */
+  displayFirstnameTips: boolean;
+  /** if enter lastname is empty, this value equal true */
+  displayLastnameTips: boolean;
   /** username */
   username: string;
+  /** firstname */
+  firstname: string;
+  /** lastname */
+  lastname: string;
 }
 export class Login extends React.Component<ILoginProps, ILoginState> {
   constructor(props: ILoginProps) {
@@ -49,6 +59,8 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
       displayMessage: 0,
       displayPasswordTips: false,
       displayUsernameTips: false,
+      displayFirstnameTips: false,
+      displayLastnameTips: false,
       formState: 0,
       message: LoginPagePrompt.messageLoginSuccessful,
       password: "",
@@ -56,10 +68,14 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
       rememberPassword: false,
       result: true,
       username: "",
+      firstname: "",
+      lastname: "",
     };
     this.changeConfirmPassword = this.changeConfirmPassword.bind(this);
     this.changePassword = this.changePassword.bind(this);
     this.changeUsername = this.changeUsername.bind(this);
+    this.changeFirstname = this.changeFirstname.bind(this);
+    this.changeLastname = this.changeLastname.bind(this);
     this.getUserEmail = this.getUserEmail.bind(this);
     this.handleDisplayLoading = this.handleDisplayLoading.bind(this);
     this.handleDisplayPasswordTips = this.handleDisplayPasswordTips.bind(this);
@@ -90,6 +106,10 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
       <div className="login">
         <form className="login-forms">
           <label className="login-state">{formStateWords}</label>
+          {/* Firstname */}
+          {this.state.formState == 1 && this.renderFirstname()}
+          {/* Lsstname */}
+          {this.state.formState == 1 && this.renderLastname()}
           {/* Username */}
           {this.renderUsername()}
           {/* Password */}
@@ -144,9 +164,32 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
     this.setState({ username: value });
   }
 
+  /** change and update state of username */
+  private changeFirstname(event: { target: { value: any } }) {
+    const value = event.target.value;
+    this.setState({ displayFirstnameTips: false });
+    if (value === "") {
+      this.setState({ displayFirstnameTips: true });
+    }
+    this.setState({ firstname: value });
+  }
+
+  /** change and update state of lastname */
+  private changeLastname(event: { target: { value: any } }) {
+    const value = event.target.value;
+    this.setState({ displayLastnameTips: false });
+    if (value === "") {
+      this.setState({ displayLastnameTips: true });
+    }
+    this.setState({ lastname: value });
+  }
+
   /** a window.prompt , user can input email dress */
   private getUserEmail() {
-    const person = prompt(LoginPagePrompt.promptKey, LoginPagePrompt.promptValue);
+    const person = prompt(
+      LoginPagePrompt.promptKey,
+      LoginPagePrompt.promptValue
+    );
     if (person === null || person === "") {
       return LoginPagePrompt.promptCancel;
     } else {
@@ -155,12 +198,12 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
   }
   /** display loading image */
   private handleDisplayLoading(LoginTip: string, results: boolean) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         this.setState({
           displayLoading: false,
           displayMessage: 1,
-          message: LoginPagePrompt[LoginTip],
+          message: LoginPagePrompt[LoginTip] ?? LoginTip,
           result: results,
         });
         resolve("done");
@@ -177,7 +220,7 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
   }
   /** after login/register successful, go to other page */
   private handleGoToOtherPage() {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         this.resetAllState();
       }, 800);
@@ -186,7 +229,7 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
   }
   /** make the top message move out */
   private handleMessageMoveOut() {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         this.setState({ displayMessage: 2 });
         resolve("done");
@@ -196,11 +239,37 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
 
   /** make sure username and password isn't empty then send request to backend for login in */
   private loginIn() {
-
     if (this.state.password !== "" && this.state.username !== "") {
       if (this.state.password.length < 6) {
         this.handleDisplayPasswordTips();
-      } else if (
+      }
+
+      let loginObj = {
+        email: this.state.username,
+        password: this.state.password,
+      };
+
+      ApiService.post(ApiRouteConstants.Auth.Login, loginObj)
+        .then((responseData) => {
+          console.log("response : ", responseData);
+          localStorage.setItem('token',responseData.token)
+          this.setState({ displayLoading: true }, async () => {
+            this.successfulLoginOrRegister("messageLoginSuccessful");
+          });
+          this.props.navigate("/list");
+        })
+        .catch((error) => {
+          console.log("login error : ", error.response.data);
+
+          this.setState({ displayLoading: true }, async () => {
+            await this.handleDisplayLoading("messageInvalidCredentials", false);
+            await this.handleMessageMoveOut();
+          });
+          //this.setState({error: error});
+        });
+
+      /*
+      else if (
         this.state.password === "password" &&
         this.state.username === "login"
       ) {
@@ -219,6 +288,8 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
           await this.handleMessageMoveOut();
         });
       }
+
+      */
     } else if (this.state.password === "" || this.state.username === "") {
       this.setState({
         displayPasswordTips: this.state.password === "",
@@ -230,10 +301,9 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
   /** render confirmPassword */
   private renderConfirmPassword() {
     const confirmPasswordClassName =
-      this.state.formState === 0
-        ? "login-hidden login-input"
-        : "login-input";
-    const confirmPasswordImage = require("./LoginImage/confirmPassword.svg").default;
+      this.state.formState === 0 ? "login-hidden login-input" : "login-input";
+    const confirmPasswordImage =
+      require("./LoginImage/confirmPassword.svg").default;
     const confirmPasswordTipsClassName = this.state.displayConfirmPasswordTips
       ? "login-displayTips"
       : "login-tips";
@@ -275,9 +345,7 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
           {/* icon */}
           <div>
             <span className={messageIconClassName} />
-            <span className="login-word-success">
-              {this.state.message}
-            </span>
+            <span className="login-word-success">{this.state.message}</span>
           </div>
         </div>
       </>
@@ -312,9 +380,7 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
       ? "login-rememberMe-checkImage"
       : "login-rememberMe-unCheckImage";
     const rememberPasswordClassName =
-      this.state.formState === 0
-        ? "login-rememberMe"
-        : "login-hidden";
+      this.state.formState === 0 ? "login-rememberMe" : "login-hidden";
     return (
       <>
         <div className={rememberPasswordClassName}>
@@ -324,14 +390,12 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
             className="login-rememberMe-CheckBox"
           >
             <i className={rememberMeClassName} />
-            <span className="login-rememberMe-CheckBox-word">
-              Remember Me
-            </span>
+            <span className="login-rememberMe-CheckBox-word">Remember Me</span>
           </p>
           {/* Forgot password */}
           <p>
             <span role="button" onClick={this.sendEmail}>
-              <a href="#" onClick={e => e.preventDefault()}>
+              <a href="#" onClick={(e) => e.preventDefault()}>
                 Forgot password
               </a>
             </span>
@@ -343,19 +407,11 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
   /** render a submit button, when user click this button ,submit the form */
   private renderSubmitButton() {
     return this.state.formState === 0 ? (
-      <button
-        type="button"
-        className="login-button"
-        onClick={this.loginIn}
-      >
+      <button type="button" className="login-button" onClick={this.loginIn}>
         Login
       </button>
     ) : (
-      <button
-        type="button"
-        className="login-button"
-        onClick={this.register}
-      >
+      <button type="button" className="login-button" onClick={this.register}>
         Register
       </button>
     );
@@ -370,7 +426,7 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
         <p className="login-registerNow">
           <span>Or</span>
           <span role="button" onClick={this.toggleFormState}>
-            <a href="#" onClick={e => e.preventDefault()} role="button">
+            <a href="#" onClick={(e) => e.preventDefault()} role="button">
               {toggleFormStateWords}
             </a>
           </span>
@@ -378,6 +434,54 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
       </>
     );
   }
+  /** render username input and icon */
+  private renderFirstname() {
+    const usernameImage = require("./LoginImage/username.svg").default;
+    const usernameTipClassName = this.state.displayFirstnameTips
+      ? "login-display-usernameTips"
+      : "login-hidden-usernameTips";
+    return (
+      <>
+        <div className="login-input">
+          <input
+            type="text"
+            name="login-firstname"
+            id="login-firstname"
+            placeholder="First Name"
+            value={this.state.firstname}
+            onChange={this.changeFirstname}
+          />
+          <img role="presentation" alt="" src={usernameImage} />
+        </div>
+        <div className={usernameTipClassName}>Please input your First Name!</div>
+      </>
+    );
+  }
+
+  /** render username input and icon */
+  private renderLastname() {
+    const usernameImage = require("./LoginImage/username.svg").default;
+    const usernameTipClassName = this.state.displayLastnameTips
+      ? "login-display-usernameTips"
+      : "login-hidden-usernameTips";
+    return (
+      <>
+        <div className="login-input">
+          <input
+            type="text"
+            name="login-username"
+            id="login-username"
+            placeholder="Last Name"
+            value={this.state.lastname}
+            onChange={this.changeLastname}
+          />
+          <img role="presentation" alt="" src={usernameImage} />
+        </div>
+        <div className={usernameTipClassName}>Please input your Last Name!</div>
+      </>
+    );
+  }
+
   /** render username input and icon */
   private renderUsername() {
     const usernameImage = require("./LoginImage/username.svg").default;
@@ -404,11 +508,12 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
 
   /** make sure username and password isn't empty then send request to backend for register */
   private register() {
-
     if (
       this.state.confirmPassword !== "" &&
       this.state.password !== "" &&
-      this.state.username !== ""
+      this.state.username !== "" &&
+      this.state.firstname !== "" &&
+      this.state.lastname !== "" 
     ) {
       if (this.state.password.length < 6) {
         this.handleDisplayPasswordTips();
@@ -418,6 +523,29 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
           displayConfirmPasswordTips: true,
         });
       } else {
+        let registerObj = {
+          email: this.state.username,
+          password: this.state.password,
+          firstName: this.state.firstname,
+          lastName: this.state.lastname,
+        };
+
+        ApiService.post(ApiRouteConstants.Auth.Register, registerObj)
+          .then((responseData) => {
+            console.log("register response : ", responseData);
+            this.setState({ displayLoading: true }, async () => {
+              this.successfulLoginOrRegister("messageRegisterSuccessful");
+            });
+          })
+          .catch((error) => {
+            console.log("register error : ", error);
+            this.setState({ displayLoading: true }, async () => {
+              await this.handleDisplayLoading("messageUsernameExist", false);
+              await this.handleMessageMoveOut();
+            });
+          });
+
+        /*
         if (this.state.username === "1") {
           this.setState({ displayLoading: true }, async () => {
             await this.handleDisplayLoading("messageUsernameExist", false);
@@ -428,16 +556,21 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
             this.successfulLoginOrRegister("messageRegisterSuccessful");
           });
         }
+        */
       }
     } else if (
       this.state.confirmPassword === "" ||
       this.state.password === "" ||
-      this.state.username === ""
+      this.state.username === "" ||
+      this.state.firstname === "" ||
+      this.state.lastname === ""
     ) {
       this.setState({
         displayConfirmPasswordTips: this.state.confirmPassword === "",
         displayPasswordTips: this.state.password === "",
         displayUsernameTips: this.state.username === "",
+        displayFirstnameTips: this.state.firstname === "",
+        displayLastnameTips: this.state.lastname === "",
       });
     }
   }
@@ -474,7 +607,7 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
         setTimeout(() => {
           this.setState({ displayMessage: 2 });
         }, 1800);
-      },
+      }
     );
   }
 

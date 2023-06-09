@@ -1,5 +1,7 @@
 import * as React from "react";
 import "./student-list.scss";
+import ApiService from "../../ApiService/ApiService";
+import { ApiRouteConstants } from "../../ApiService/ApiRouteConstants";
 
 export interface IListProps {
     navigate: any
@@ -20,6 +22,17 @@ export class StudentList extends React.Component<IListProps, IListState> {
   /** when component will un mount, reset all state */
   public componentWillUnmount() {
     
+  }
+
+
+  componentDidMount() {
+    ApiService.get(ApiRouteConstants.Student.GetAll)
+    .then((res)=>{
+      console.log('student response : ',res);
+    })
+    .catch((error)=>{
+      console.log('student error : ',error);
+    })
   }
 
       

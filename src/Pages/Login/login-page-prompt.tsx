@@ -6,6 +6,7 @@ export const LoginPagePrompt: ILoginPagePrompt = {
     messageRegisterSuccessful: "register successful",
     messageUsernameExist: "Username already exists",
     messageUsernameNotExist: "Username does not exist",
+    messageInvalidCredentials: "Invalid Credentials",
     messageWrongPassword: "Wrong password",
     promptCancel: "you canceled",
     promptKey: "please input your email:",
@@ -21,6 +22,7 @@ export const LoginPagePrompt: ILoginPagePrompt = {
     messageRegisterSuccessful: string;
     messageUsernameExist: string;
     messageUsernameNotExist: string;
+    messageInvalidCredentials: string;
     messageWrongPassword: string;
     promptCancel: string;
     promptKey: string;
